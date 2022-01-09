@@ -14,7 +14,6 @@ Ext.define('Zan.common.util.Format', {
      * @returns {String|string}
      */
     snakeCaseToTitleCase: function(text) {
-        console.log("snake to titling %o", text);
         var formattedDisplayString = '';
 
         if (Ext.isEmpty(text)) return '';
