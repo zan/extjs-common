@@ -37,9 +37,11 @@ Ext.define('Zan.common.String', {
         if (Ext.isString(value)) {
             return value;
         }
-
         if (Ext.isBoolean(value)) {
             return this.fromBoolean(value, options);
+        }
+        if (Ext.isObject(value)) {
+            return value + '';
         }
     },
 
