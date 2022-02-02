@@ -1,29 +1,27 @@
 /**
- * todo: clicking 'X' in upper right should also call the cancelFn
+ * todo: clicking 'X' in upper right should also call the cancelHandler (need to add a flag to track whether "ok" was clicked)
  *
  * todo: make this more declarative?
  *
  * todo: check that popups containing a grid have a width specified. If this is missing, you get "layout run failed"
- *
- * todo: rename this file, it doesn't match the class name
- *
- * todo: rename okFn and cancelFn to handler and cancelHandler to be more ext-like?
  */
 Ext.define('Zan.common.view.PopupDialogPanel', {
     extend: 'Ext.panel.Panel',
 
     config: {
         /**
-         * @cfg {function} Function to call when OK is pressed
+         * @cfg {function} Function to call when OK is pressed and the popup is valid
          *
          * Return false to leave the popup open
+         *
+         * The popup is considered valid if isValid() returns true
          * todo Return an Ext.deferred to set the form's state to "loading" until it resolves
          *
          * todo: document arguments correctly
          * Arguments:
          *  {Zan.common.view.PopupDialogPanel} panel
          */
-        okFn: null,
+        handler: Ext.emptyFn,
 
         /**
          * @cfg {function} Function to call when OK is pressed
@@ -32,7 +30,7 @@ Ext.define('Zan.common.view.PopupDialogPanel', {
          * todo Return an Ext.deferred to set the form's state to "loading" until it resolves
          *
          */
-        cancelFn: null,
+        cancelHandler: Ext.emptyFn,
 
         /**
          * @cfg {boolean} If true, include a "Cancel" button that closes the popup
@@ -62,21 +60,6 @@ Ext.define('Zan.common.view.PopupDialogPanel', {
     initComponent: function () {
         this.callParent(arguments);
 
-        if (!this.getOkFn()) {
-            this.setOkFn(() => {
-                return true;
-            });
-        }
-
-        if (!this.getCancelFn()) {
-            this.setCancelFn(() => {
-                return true;
-            });
-        }
-
-        // todo: remove this and use 'items'
-        this.add(this._buildChildComponents());
-
         // todo: remove this and use 'bbar'?
         // https://docs.sencha.com/extjs/7.3.1/classic/Ext.grid.Panel.html#cfg-bbar
         this.addDocked(this._buildDockedItems());
@@ -85,20 +68,12 @@ Ext.define('Zan.common.view.PopupDialogPanel', {
     /**
      * Template method to detect whether the popup is in a valid state
      *
-     * This method is called as part of the "ok" handler and okFn won't be called if this method returns false
+     * When "OK" is clicked this method is called. The popup's handler is only called if this method returns true.
      *
      * @template
      */
-    isValid: function() {
+    isValid: function(popup) {
         return true;
-    },
-
-    _buildChildComponents: function() {
-        var components = [];
-
-
-
-        return components;
     },
 
     _buildDockedItems: function() {
@@ -118,11 +93,12 @@ Ext.define('Zan.common.view.PopupDialogPanel', {
                     text: 'OK',
                     scale: 'medium',
                     handler: function() {
-                        if (!this.isValid()) return;
+                        if (!this.isValid(this)) return;
 
-                        var r = this.getOkFn().call(this.getScope() || this, this);
+                        var r = this.getHandler().call(this.getScope() || this, this);
                         if (r === false) return;
 
+                        // todo: deferred support
                         this.close();
                     },
                     scope: this
@@ -134,7 +110,7 @@ Ext.define('Zan.common.view.PopupDialogPanel', {
                     margin: '0 0 0 10',
                     hidden: !this.getShowCancelButton(),
                     handler: function() {
-                        var r = this.getCancelFn().call(this.getScope() || this, this);
+                        var r = this.getCancelHandler().call(this.getScope() || this, this);
 
                         if (r === false) return;
 
