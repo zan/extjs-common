@@ -17,23 +17,27 @@ Ext.define('Zan.common.view.FileUploadButton', {
             // where SF_NAME is the name of the form field as defined in Symfony
             name: 'form[uploadedFile][file]',
             buttonText: 'Upload File(s)',
-            iconCls: 'x-fa fa-file-upload',
-        },
-        {
-            xtype: 'button',
-            text: 'Submit Form',
-            handler: function(button) {
-                var form = button.up('form').getForm();
-                if (!form.isValid()) return;
-
-                form.submit({
-                    url: button.up('form').getUploadUrl(),
-                    waitMsg: 'Uploading...',
-                    success: function(form, options) {
-                        // todo: notify somehow so components can update
-                    }
-                });
+            buttonOnly: true,
+            listeners: {
+                change: function(fileField, newValue) {
+                    fileField.up('panel')._commitFile();
+                }
             }
-        }
+        },
     ],
+
+    _commitFile: function() {
+        console.log("committing file!");
+        if (!this.isValid()) return;
+
+        this.getForm().submit({
+            url: this.getUploadUrl(),
+            waitMsg: 'Uploading...',
+            success: function(form, options) {
+                console.log("upload done in button handler");
+                this.fireEvent('uploadComplete', this);
+            },
+            scope: this,
+        });
+    },
 });
