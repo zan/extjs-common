@@ -23,8 +23,6 @@ Ext.define('Zan.common.MessageBox', {
         // Wrap the original callback with one that resolves the promise
         var resolverCb = Ext.Function.createSequence(callbackFn, function(buttonId) {
             if ('yes' === buttonId) deferred.resolve(true);
-
-            deferred.resolve(false);
         });
 
         Ext.MessageBox.confirm(title, message, resolverCb, callbackFnScope);
