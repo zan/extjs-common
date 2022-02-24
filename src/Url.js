@@ -22,15 +22,12 @@ Ext.define('Zan.common.Url', {
 
         if (Ext.isEmpty(escapeVal)) escapeVal = true;
 
+        if (escapeVal) varValue = encodeURIComponent(varValue);
+
         var qpos = baseUrl.indexOf("?");
         // No existing query string, append our varname and value
         if (qpos == -1) {
-            if (escapeVal) {
-                return baseUrl + "?" + varName + "=" + encodeURIComponent(varValue);
-            } else {
-                return baseUrl + "?" + varName + "=" + varValue;
-            }
-
+            return baseUrl + "?" + varName + "=" + varValue;
         }
 
         var queryString = baseUrl.substr(qpos + 1);
@@ -48,10 +45,7 @@ Ext.define('Zan.common.Url', {
         }
 
         if (!replaced) {
-            if (escapeVal)
-                pairs[pairs.length] = varName + "=" + encodeURIComponent(varValue);
-            else
-                pairs[pairs.length] = varName + "=" + varValue;
+            pairs[pairs.length] = varName + "=" + varValue;
         }
 
         var newQueryString = pairs.join("&");
