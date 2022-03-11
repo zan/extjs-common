@@ -1,14 +1,16 @@
 /**
- * todo: clicking 'X' in upper right should also call the cancelHandler (need to add a flag to track whether "ok" was clicked)
- *
- * todo: make this more declarative?
- *
- * todo: check that popups containing a grid have a width specified. If this is missing, you get "layout run failed"
- *
- * todo: unify implementation with PopupFormPanel
+ * 
  */
-Ext.define('Zan.common.view.PopupDialogPanel', {
-    extend: 'Ext.panel.Panel',
+Ext.define('Zan.common.view.PopupFormPanel', {
+    extend: 'Ext.form.Panel',
+
+    requires: [
+        'Zan.data.form.RecordFormMixin',
+    ],
+
+    mixins: {
+        recordForm: 'Zan.data.form.RecordFormMixin',
+    },
 
     config: {
         /**
@@ -35,14 +37,14 @@ Ext.define('Zan.common.view.PopupDialogPanel', {
         cancelHandler: Ext.emptyFn,
 
         /**
-         * @cfg {boolean} If true, include a "Cancel" button that closes the popup
-         */
-        showCancelButton: true,
-
-        /**
          * @cfg {*} scope to use when calling functions
          */
         scope: null,
+
+        /**
+         * @cfg {boolean} If true, call save() on the record when the form is valid and "OK" is clicked
+         */
+        autoSaveRecord: false
     },
 
     // Allow tracking references
@@ -59,23 +61,16 @@ Ext.define('Zan.common.view.PopupDialogPanel', {
     minHeight: 200,
     minWidth: 200,
 
+    // Form fields should fill full width of the popup
+    layout: {
+        type: 'vbox',
+        align: 'stretch',
+    },
+
     initComponent: function () {
         this.callParent(arguments);
 
-        // todo: remove this and use 'bbar'?
-        // https://docs.sencha.com/extjs/7.3.1/classic/Ext.grid.Panel.html#cfg-bbar
         this.addDocked(this._buildDockedItems());
-    },
-
-    /**
-     * Template method to detect whether the popup is in a valid state
-     *
-     * When "OK" is clicked this method is called. The popup's handler is only called if this method returns true.
-     *
-     * @template
-     */
-    isValid: function(popup) {
-        return true;
     },
 
     _buildDockedItems: function() {
@@ -94,11 +89,19 @@ Ext.define('Zan.common.view.PopupDialogPanel', {
                     xtype: 'button',
                     text: 'OK',
                     scale: 'medium',
-                    handler: function() {
+                    handler: async function(button) {
                         if (!this.isValid(this)) return;
 
                         var r = this.getHandler().call(this.getScope() || this, this);
                         if (r === false) return;
+
+                        if (this.getAutoSaveRecord() && this.getRecord()) {
+                            this.updateRecord(this.getRecord());
+                            button.setLoading("Saving...");
+                            await Zan.data.util.ModelUtil.save(this.getRecord(), {
+                                failure: () => { button.setLoading(false) },
+                            });
+                        }
 
                         // todo: deferred support
                         this.close();
@@ -110,7 +113,6 @@ Ext.define('Zan.common.view.PopupDialogPanel', {
                     text: 'Cancel',
                     scale: 'medium',
                     margin: '0 0 0 10',
-                    hidden: !this.getShowCancelButton(),
                     handler: function() {
                         var r = this.getCancelHandler().call(this.getScope() || this, this);
 
@@ -124,5 +126,6 @@ Ext.define('Zan.common.view.PopupDialogPanel', {
         });
 
         return docked;
-    }
+    },
+
 });
