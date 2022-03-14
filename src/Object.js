@@ -7,15 +7,18 @@ Ext.define('Zan.common.Object', {
     getMaxDepth: function(object) {
         var keys = Ext.Object.getKeys(object);
 
+        var maxKeyDepth = 1;
         for (var i=0; i < keys.length; i++) {
             var key = keys[i];
+            var keyDepth = 0;
 
-            if (Ext.isObject(object[key])) {
-                return 1 + this.getMaxDepth(object[key]);
+            if (Ext.isObject(object[key]) || Ext.isArray(object[key])) {
+                keyDepth = 1 + this.getMaxDepth(object[key]);
             }
+
+            if (keyDepth > maxKeyDepth) maxKeyDepth = keyDepth;
         }
 
-        // No objects below this one, depth is 1
-        return 1;
+        return maxKeyDepth;
     }
 });
