@@ -40,6 +40,9 @@ Ext.define('Zan.common.String', {
         if (Ext.isBoolean(value)) {
             return this.fromBoolean(value, options);
         }
+        if (Ext.isDate(value)) {
+            return this.fromDate(value, options);
+        }
         if (Ext.isObject(value)) {
             return value + '';
         }
@@ -63,5 +66,33 @@ Ext.define('Zan.common.String', {
         if (value === null || value === undefined) return options.nullText;
         if (value === true) return options.trueText;
         if (value === false) return options.falseText;
+    },
+
+    /**
+     * Converts a Date to a String
+     *
+     * Supported options:
+     *      includeDate: boolean (default true), if true include Ext.Date.defaultFormat
+     *      includeTime: boolean (default false), if true, include Ext.Date.defaultTimeFormat
+     *
+     * @returns {String}
+     */
+    fromDate: function(value, options) {
+        options = Ext.applyIf(options, {
+            includeDate: true,
+            includeTime: false,
+        });
+
+        var formatParts = [];
+
+        if (options.includeDate) {
+            formatParts.push(Ext.Date.defaultFormat);
+        }
+
+        if (options.includeTime) {
+            formatParts.push(Ext.Date.defaultTimeFormat);
+        }
+
+        return Ext.Date.format(value, formatParts.join(' '));
     }
 });
