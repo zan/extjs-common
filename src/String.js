@@ -94,5 +94,23 @@ Ext.define('Zan.common.String', {
         }
 
         return Ext.Date.format(value, formatParts.join(' '));
-    }
+    },
+
+    /**
+     * Newline-aware htmlEncode()
+     *
+     * @param {string} value
+     * @returns {string}
+     */
+    htmlEncode: function(value) {
+        if (!value) return '';
+
+        // html encode string
+        value = Ext.htmlEncode(value);
+
+        // Convert newlines to line breaks
+        value = value.replaceAll("\n", "<br>");
+
+        return value;
+    },
 });
