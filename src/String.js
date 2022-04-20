@@ -25,14 +25,33 @@ Ext.define('Zan.common.String', {
      *
      * This method supports the following options (in addition to options supported by other from* methods):
      *      nullValueString - the string to return when a null or undefined value is passed
+     *      arrayValueDelimiter - the string to use when combining an array of values into a single string
+     *      stringProperty - the property to use when converting an object or model to a string
      */
     from: function(value, options) {
         options = options || {};
         options = Ext.applyIf(options, {
             nullValueString: '',
+            arrayValueDelimiter: "\n",
+            stringProperty: null,
         });
 
         if (value === null || value === undefined) return options.nullValueString;
+
+        // Convert stores to array values before continuing
+        if (value instanceof Ext.data.Store) {
+            value = value.getRange();
+        }
+
+        // For arrays, build a string by calling from() on each element
+        if (Ext.isArray(value)) {
+            var strValueParts = [];
+            for (var i=0; i < value.length; i++) {
+                strValueParts.push(this.from(value[i], options));
+            }
+
+            return strValueParts.join(options.arrayValueDelimiter);
+        }
 
         if (Ext.isString(value)) {
             return value;
@@ -43,7 +62,22 @@ Ext.define('Zan.common.String', {
         if (Ext.isDate(value)) {
             return this.fromDate(value, options);
         }
+        if (value instanceof Ext.data.Model) {
+            // If available, use the objectProperty option
+            if (options.stringProperty) {
+                return Zan.data.util.ModelUtil.getValue(value, options.stringProperty);
+            }
+
+            // Fall back to string conversion
+            return value + '';
+        }
         if (Ext.isObject(value)) {
+            // If available, use the objectProperty option
+            if (options.stringProperty) {
+                return value[options.stringProperty];
+            }
+
+            // Fall back to string conversion
             return value + '';
         }
     },
