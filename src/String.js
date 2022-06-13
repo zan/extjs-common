@@ -80,6 +80,9 @@ Ext.define('Zan.common.String', {
             // Fall back to string conversion
             return value + '';
         }
+
+        // Fall back to string conversion
+        return value + '';
     },
 
     /**
