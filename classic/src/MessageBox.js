@@ -25,6 +25,18 @@ Ext.define('Zan.common.MessageBox', {
             if ('yes' === buttonId) deferred.resolve(true);
         });
 
+        // This title object will be created anyways in the Msgbox.confirm() method if title is a string.
+        // We are creating it here so we can customize fields like the buttons and defaultFocus
+        title = {
+            title: title,
+            icon: Ext.Msg.QUESTION,
+            message: message,
+            buttons: Ext.Msg.YESNO,
+            defaultFocus: '#no',
+            callback: resolverCb,
+            scope: callbackFnScope
+        };
+
         Ext.MessageBox.confirm(title, message, resolverCb, callbackFnScope);
 
         return deferred.promise;
