@@ -1,5 +1,5 @@
 /**
- * todo: lots of stuff, this is a prototype
+ * Customized file upload UI element that supports more advanced features
  */
 Ext.define('Zan.common.view.FileUploadButton', {
     extend: 'Ext.form.Panel',
@@ -7,35 +7,85 @@ Ext.define('Zan.common.view.FileUploadButton', {
     layout: 'hbox',
 
     config: {
+        /**
+         * @cfg string This URL will receive the file upload
+         */
         uploadUrl: null,
+
+        /**
+         * @cfg bool If true, the file is sent to the server as soon as the user selects it
+         *
+         * Otherwise, you can listen for the 'fileSelected' event to know when the user has
+         * chosen a file.
+         */
+        submitOnChange: true,
     },
 
     items: [
         {
             xtype: 'filefield',
+            itemId: 'fileField',
             // This must be in the format form[SF_NAME][file]
             // where SF_NAME is the name of the form field as defined in Symfony
             name: 'form[uploadedFile][file]',
             buttonText: 'Upload File(s)',
             buttonOnly: true,
+            fieldStyle: 'margin-left: 0px;',
             listeners: {
                 change: function(fileField, newValue) {
-                    fileField.up('panel')._commitFile();
+                    if (fileField.up('panel').getSubmitOnChange()) {
+                        fileField.up('panel')._commitFile();
+                    }
                 }
             }
         },
     ],
 
+    constructor: function(config) {
+        this._fileContentArrayBuffer = null;
+
+        this.callParent([ config ]);
+    },
+
+    afterRender: function() {
+        var me = this;
+
+        this.callParent(arguments);
+
+        // Attach native event listener so we can provide access to the file's data
+        // NOTE: addEventListener is a native javascript method, not an Ext method!
+        var fileInputDom = this.down("#fileField").fileInputEl.dom;
+        fileInputDom.addEventListener('change', function(files) {
+            var reader = new FileReader();
+
+            reader.onload = function(e) {
+                me._fileContentArrayBuffer = reader.result;
+
+                // Build a FormData object for easier uploading
+                var formData = new FormData();
+                formData.append(me.down("#fileField").getName(), fileInputDom.files[0]);
+
+                me.fireEvent('fileSelected', this, formData, fileInputDom, me._fileContentArrayBuffer);
+            };
+
+            reader.readAsArrayBuffer(this.files[0]);
+        });
+
+        // Fix for text field causing extra spacing even though it's hidden
+        // Recommended by Sencha support in ticket #58614
+        this.down("#fileField").getEl()
+            .down(".x-form-text-field-body-default")
+            .setStyle({ minWidth: "inherit", minHeight: "inherit" });
+    },
+
     _commitFile: function() {
-        console.log("committing file!");
         if (!this.isValid()) return;
 
         this.getForm().submit({
             url: this.getUploadUrl(),
             waitMsg: 'Uploading...',
-            success: function(form, options) {
-                console.log("upload done in button handler");
-                this.fireEvent('uploadComplete', this);
+            success: function(form, action) {
+                this.fireEvent('uploadComplete', this, action.result, action);
             },
             scope: this,
         });
