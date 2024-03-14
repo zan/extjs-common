@@ -21,6 +21,23 @@ Ext.define('Zan.common.view.FileUploadButton', {
         submitOnChange: true,
     },
 
+    /**
+     * @event uploadComplete
+     * Fires after the file has been successfully uploaded to the server
+     * @param {Zan.common.view.FileUploadButton} uploadButton
+     * @param {object} result The form action's result: {@link Ext.form.action.Action.result}
+     * @param {Ext.form.action.Action} action The {@link Ext.form.action.Action} that completed
+     */
+
+    /**
+     * @event fileSelected
+     * Fires when a file is chosen (but before it's uploaded).
+     * @param {Zan.common.view.FileUploadButton} uploadButton
+     * @param {FormData} formData FormData that includes the file element
+     * @param {Element} fileInputDom DOM element for the file input field
+     * @param {ArrayBuffer} fileContents Raw content of the selected file
+     */
+
     items: [
         {
             xtype: 'filefield',
