@@ -44,7 +44,7 @@ Ext.define('Zan.common.view.FileUploadButton', {
             itemId: 'fileField',
             // This must be in the format form[SF_NAME][file]
             // where SF_NAME is the name of the form field as defined in Symfony
-            name: 'form[uploadedFile][file]',
+            name: 'form[uploadedFile][file]', // NOTE: referenced in _parseErrorMessageFromAction
             buttonText: 'Upload File(s)',
             buttonOnly: true,
             fieldStyle: 'margin-left: 0px;',
@@ -132,13 +132,15 @@ Ext.define('Zan.common.view.FileUploadButton', {
         // Check if the data is available
         if (!action || !action.result || !action.result.errors) return 'Error uploading file(s)';
 
+        var errors = action.result.errors.uploadedFile;
+
         // One error: just return it
-        if (action.result.errors.length === 1) return action.result.errors[0];
+        if (!Ext.isArray(errors)) return errors;
 
         // Otherwise, build a nicely-formatted list
         var html = '<ul>';
-        for (var i=0; i < action.result.errors.length; i++) {
-            html += '<li>' + action.result.errors[i];
+        for (var i=0; i < errors.length; i++) {
+            html += '<li>' + errors[i];
         }
         html += '</ul>';
 
