@@ -87,7 +87,44 @@ Ext.define('Zan.common.view.FileUploadButton', {
             success: function(form, action) {
                 this.fireEvent('uploadComplete', this, action.result, action);
             },
+            failure: function(form, action) {
+                switch (action.failureType) {
+                    case Ext.form.action.Action.SERVER_INVALID:
+                        var errorMsg = this._parseErrorMessageFromAction(action);
+                        Ext.Msg.alert('Error', errorMsg);
+                        break;
+                    case Ext.form.action.Action.LOAD_FAILURE:
+                        Ext.Msg.alert('Error', 'File upload failed (empty response from the server)');
+                        break;
+                    case Ext.form.action.Action.CLIENT_INVALID:
+                        Ext.Msg.alert('Error', 'Form fields may not be submitted with invalid values');
+                        break;
+                    case Ext.form.action.Action.CONNECT_FAILURE:
+                        Ext.Msg.alert('Error', 'Error communicating with the server. Please retry your upload.');
+                        break;
+                    default:
+                        Ext.Msg.alert('Error', 'File upload failed');
+                        break;
+                }
+            },
             scope: this,
         });
     },
+
+    _parseErrorMessageFromAction: function(action) {
+        // Check if the data is available
+        if (!action || !action.result || !action.result.errors) return 'Error uploading file(s)';
+
+        // One error: just return it
+        if (action.result.errors.length === 1) return action.result.errors[0];
+
+        // Otherwise, build a nicely-formatted list
+        var html = '<ul>';
+        for (var i=0; i < action.result.errors.length; i++) {
+            html += '<li>' + action.result.errors[i];
+        }
+        html += '</ul>';
+
+        return html;
+    }
 });
