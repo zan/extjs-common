@@ -83,9 +83,6 @@ Ext.define('Zan.common.view.FileUploadButton', {
                 formData.append(me.down("#fileField").getName(), fileInputDom.files[0]);
 
                 me.fireEvent('fileSelected', this, formData, fileInputDom, me._fileContentArrayBuffer);
-
-                // Reset field value so that "change" event will fire if the same file is re-picked
-                fileInputDom.value = null;
             };
 
             reader.readAsArrayBuffer(this.files[0]);
@@ -144,12 +141,13 @@ Ext.define('Zan.common.view.FileUploadButton', {
         var errors = action.result.errors.uploadedFile;
 
         // One error: just return it
-        if (!Ext.isArray(errors)) return errors;
+        if (!Ext.isArray(errors)) return Ext.htmlEncode(errors);
+        if (errors.length === 1) return Ext.htmlEncode(errors[0]);
 
         // Otherwise, build a nicely-formatted list
         var html = '<ul>';
         for (var i=0; i < errors.length; i++) {
-            html += '<li>' + errors[i];
+            html += '<li>' + Ext.htmlEncode(errors[i]);
         }
         html += '</ul>';
 
