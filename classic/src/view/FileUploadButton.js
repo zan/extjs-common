@@ -45,7 +45,7 @@ Ext.define('Zan.common.view.FileUploadButton', {
             // This must be in the format form[SF_NAME][file]
             // where SF_NAME is the name of the form field as defined in Symfony
             name: 'form[uploadedFile][file]', // NOTE: referenced in _parseErrorMessageFromAction
-            buttonText: 'Upload File(s)',
+            buttonText: 'Upload File',
             buttonOnly: true,
             fieldStyle: 'margin-left: 0px;',
             listeners: {
@@ -83,6 +83,9 @@ Ext.define('Zan.common.view.FileUploadButton', {
                 formData.append(me.down("#fileField").getName(), fileInputDom.files[0]);
 
                 me.fireEvent('fileSelected', this, formData, fileInputDom, me._fileContentArrayBuffer);
+
+                // Reset field value so that "change" event will fire if the same file is re-picked
+                fileInputDom.value = null;
             };
 
             reader.readAsArrayBuffer(this.files[0]);
@@ -103,6 +106,9 @@ Ext.define('Zan.common.view.FileUploadButton', {
             waitMsg: 'Uploading...',
             success: function(form, action) {
                 this.fireEvent('uploadComplete', this, action.result, action);
+
+                // Reset field value so that "change" event will fire if the same file is re-picked
+                this.down("#fileField").fileInputEl.dom.value = null;
             },
             failure: function(form, action) {
                 switch (action.failureType) {
@@ -123,6 +129,9 @@ Ext.define('Zan.common.view.FileUploadButton', {
                         Ext.Msg.alert('Error', 'File upload failed');
                         break;
                 }
+
+                // Reset field value so that "change" event will fire if the same file is re-picked
+                this.down("#fileField").fileInputEl.dom.value = null;
             },
             scope: this,
         });
